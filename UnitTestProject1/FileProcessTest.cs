@@ -29,7 +29,7 @@ namespace UnitTestProject1
         [TestInitialize]
         public void TestInitialize()
         {
-            if(TestContext.TestName == "FileNameDoesExist")
+            if(TestContext.TestName.StartsWith("FileNameDoesExist"))
             {
                 SetGoodFileName();
                 if (!string.IsNullOrEmpty(_GoodFileName))
@@ -43,7 +43,7 @@ namespace UnitTestProject1
         [TestCleanup]
         public void TestCleanup()
         {
-            if (TestContext.TestName == "FileNameDoesExist")
+            if (TestContext.TestName.StartsWith("FileNameDoesExist"))
             {
                 if (!string.IsNullOrEmpty(_GoodFileName))
                 {
@@ -58,6 +58,28 @@ namespace UnitTestProject1
         public TestContext TestContext { get; set; }
 
         private const string FILE_NAME = @"FileToDeploy.txt";
+
+        [TestMethod]
+        public void FileNameDoesExistSimpleMessageSimulate()
+        {
+            FileProcess fp = new FileProcess();
+            bool fromCall;
+
+            fromCall = fp.FileExists(_GoodFileName);
+
+            Assert.IsFalse(fromCall, "File Does NOT exists.");
+        }
+
+        [TestMethod]
+        public void FileNameDoesExistMessageWithFormattingSimulate()
+        {
+            FileProcess fp = new FileProcess();
+            bool fromCall;
+
+            fromCall = fp.FileExists(_GoodFileName);
+
+            Assert.IsFalse(fromCall, "File {0} Does NOT exists.", _GoodFileName);
+        }
 
         [TestMethod]
         [Owner("Rolando")]
