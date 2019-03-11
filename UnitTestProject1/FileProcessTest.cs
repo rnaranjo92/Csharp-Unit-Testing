@@ -54,8 +54,39 @@ namespace UnitTestProject1
         }
         #endregion
 
-
         public TestContext TestContext { get; set; }
+
+        [TestMethod]
+        [DataSource("System.Data.SqlClient",
+      "Server=Localhost;Database=UnitTestDb;Integrated Security=Yes",
+      "tests.FileProcessTest",
+      DataAccessMethod.Sequential)]
+        public void FileExistsTestFromDB()
+        {
+            FileProcess fp = new FileProcess();
+            string fileName;
+            bool expectedValue;
+            bool causesException;
+            bool fromCall;
+
+            fileName = TestContext.DataRow["FileName"].ToString();
+            expectedValue = Convert.ToBoolean(TestContext.DataRow["ExpectedValue"]);
+            causesException = Convert.ToBoolean(TestContext.DataRow["CausesException"]);
+
+            try
+            {
+                fromCall = fp.FileExists(fileName);
+                Assert.AreEqual(expectedValue, fromCall, "File Name:" + fileName + " has failed it's existence test in test : FileExistsTestFromDB()");
+            }
+            catch(AssertFailedException ex)
+            {
+                throw ex;
+            }
+            catch (ArgumentNullException)
+            {
+                Assert.IsTrue(causesException);
+            }
+        }
 
         private const string FILE_NAME = @"FileToDeploy.txt";
 
