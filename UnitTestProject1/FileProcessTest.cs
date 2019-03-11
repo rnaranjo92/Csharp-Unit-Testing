@@ -3,6 +3,7 @@ using MyClass.Models;
 using System;
 using System.Configuration;
 using System.IO;
+using System.Threading;
 
 namespace UnitTestProject1
 {
@@ -12,25 +13,108 @@ namespace UnitTestProject1
         private const string BAD_FILE_NAME = @"C:\BadFileName.bad";
         private string _GoodFileName;
 
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext tc)
+        {
+            tc.WriteLine("In the class initialize.");
+        }
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            
+        }
+
+        #region
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            if(TestContext.TestName == "FileNameDoesExist")
+            {
+                SetGoodFileName();
+                if (!string.IsNullOrEmpty(_GoodFileName))
+                {
+                    TestContext.WriteLine("Creating File:" + _GoodFileName);
+                    File.AppendAllText(_GoodFileName, "Some Text");
+                }
+            }
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            if (TestContext.TestName == "FileNameDoesExist")
+            {
+                if (!string.IsNullOrEmpty(_GoodFileName))
+                {
+                    TestContext.WriteLine("Deleting File:" + _GoodFileName);
+                    File.Delete(_GoodFileName);
+                }
+            }
+        }
+        #endregion
+
+
         public TestContext TestContext { get; set; }
 
+        private const string FILE_NAME = @"FileToDeploy.txt";
+
         [TestMethod]
+        [Owner("Rolando")]
+        [DeploymentItem(FILE_NAME)]
+        public void FileNameDoesExistUsingDeploymentItem()
+        {
+            FileProcess fp = new FileProcess();
+            string fileName;
+            bool fromCall;
+
+            fileName = TestContext.DeploymentDirectory + @"\" + FILE_NAME;
+            TestContext.WriteLine("Checking file: " + fileName);
+
+            fromCall = fp.FileExists(fileName);
+
+            Assert.IsTrue(fromCall);
+        }
+
+
+        [TestMethod]
+        [Timeout(3000)]
+        public void SimulateTimeout()
+        {
+            Thread.Sleep(2000);
+        }
+
+        [TestMethod]
+        [Timeout(3000)]
+        [Ignore]
+        public void SimulateIgnore()
+        {
+            Thread.Sleep(2000);
+        }
+
+        [TestMethod]
+        [Description("Check if the file exist.")]
+        [Owner("Rolando T Naranjo")]
+        [Priority(0)]
+        [TestCategory("FileNameDoesExit")]
         public void FileNameDoesExist()
         {
             FileProcess fp = new FileProcess();
             bool fromCall;
 
-            SetGoodFileName();
-            TestContext.WriteLine("Creating the file:" + _GoodFileName);
-            File.AppendAllText(_GoodFileName, "Some Text");
+            //TestContext.WriteLine("Creating the file:" + _GoodFileName);
+            //File.AppendAllText(_GoodFileName, "Some Text");
             TestContext.WriteLine("Testing the file:" + _GoodFileName);
             fromCall = fp.FileExists(_GoodFileName);
-            TestContext.WriteLine("Deleting the file:" + _GoodFileName);
-            File.Delete(_GoodFileName);
+            //TestContext.WriteLine("Deleting the file:" + _GoodFileName);
+            //File.Delete(_GoodFileName);
 
             Assert.IsTrue(fromCall);
         }
         [TestMethod]
+        [Owner("Krizhia Naranjo")]
+        [Description("Check if the file does not exist.")]
+        [Priority(0)]
         public void FileNameDoesNotExist()
         {
             FileProcess fp = new FileProcess();
@@ -53,7 +137,10 @@ namespace UnitTestProject1
 
 
         [TestMethod]
+        [Owner("Khleo Naranjo")]
+        [Description("Check if the file is null or empty.")]
         [ExpectedException(typeof(ArgumentNullException))]
+        [Priority(1)]
         public void FileNameNullOrEmpty_ThrowsArgumentNullException()
         {
             FileProcess fp = new FileProcess();
@@ -61,6 +148,8 @@ namespace UnitTestProject1
             fp.FileExists("");
         }
         [TestMethod]
+        [Owner("Khleo Naranjo")]
+        [Priority(1)]
         public void FileNameNullOrEmpty_ThrowsArgumentNullExceptionTryCatchException()
         {
             FileProcess fp = new FileProcess();
